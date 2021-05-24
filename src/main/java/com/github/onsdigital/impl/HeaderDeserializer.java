@@ -1,0 +1,57 @@
+package com.github.onsdigital.impl;
+
+import com.github.onsdigital.exceptions.JWTDecodeException;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
+
+import java.io.IOException;
+import java.util.Map;
+
+/**
+ * Jackson deserializer implementation for converting from JWT Header parts.
+ *
+ * @see JWTParser
+ * <p>
+ * This class is thread-safe.
+ */
+class HeaderDeserializer extends StdDeserializer<BasicHeader> {
+
+    private final ObjectReader objectReader;
+
+    HeaderDeserializer(ObjectReader objectReader) {
+        this(null, objectReader);
+    }
+
+    private HeaderDeserializer(Class<?> vc, ObjectReader objectReader) {
+        super(vc);
+
+        this.objectReader = objectReader;
+    }
+
+    @Override
+    public BasicHeader deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+        Map<String, JsonNode> tree = p.getCodec().readValue(p, new TypeReference<Map<String, JsonNode>>() {
+        });
+        if (tree == null) {
+            throw new JWTDecodeException("Parsing the Header's JSON resulted on a Null map");
+        }
+
+        String algorithm = getString(tree, PublicClaims.publicClaimsEnum.alg);
+        String type = getString(tree, PublicClaims.publicClaimsEnum.typ);
+        String contentType = getString(tree, PublicClaims.publicClaimsEnum.cty);
+        String keyId = getString(tree, PublicClaims.publicClaimsEnum.kid);
+        return new BasicHeader(algorithm, type, contentType, keyId, tree, objectReader);
+    }
+
+    String getString(Map<String, JsonNode> tree, PublicClaims.publicClaimsEnum claimName) {
+        JsonNode node = tree.get(claimName.toString());
+        if (node == null || node.isNull()) {
+            return null;
+        }
+        return node.asText(null);
+    }
+}
