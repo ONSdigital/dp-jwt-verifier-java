@@ -18,15 +18,16 @@ Will return an object containing user's email and groups they belong to, or erro
 ### Populate an object example
 
 ```java
-import com.github.onsdigital.interfaces.interfaces.JWTHandler;
-import com.github.onsdigital.impl.UserDataPayload;
 import com.github.onsdigital.JWTHandlerImpl;
+import com.github.onsdigital.impl.UserDataPayload;
+import com.github.onsdigital.interfaces.JWTHandler;
 ...
 ...
 ...
-    private JWTHandler jwtHandler = new JWTHandlerImpl(); // can be passed is as part of class constructor too
+    // can be passed is as part of class constructor too
+    private JWTHandler jwtHandler = new JWTHandlerImpl();
     try {
-        UserDataPayload jwtData = jwtLib.verifyJWTToken(<JWT_ACCESS_TOKEN>, <SIGNING_KEY>);
+        UserDataPayload jwtData = jwtHandler.verifyJWT(<JWT_ACCESS_TOKEN>, <SIGNING_KEY>);
         System.out.Println("Users email is: "+jwtData.getEmail());
         System.out.Println("A group user belongs to is: "+jwtData.getGroups()[0]);
         ...
