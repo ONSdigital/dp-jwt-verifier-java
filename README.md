@@ -5,7 +5,7 @@ A Java JSON Web Token (JWT) verification library
 
 Create an instance of the library (uses interface):
 ```
-    private JWTHandler jwtHandler;
+    private JWTHandler jwtHandler = new JWTHandlerImpl();
 ```
 
 Get verification of JWT Access Token (caller gets SIGNING_KEY from config):
