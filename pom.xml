@@ -69,6 +69,13 @@
       <version>${assertj.core.version}</version>
       <scope>test</scope>
     </dependency>
+  
+    <dependency>
+      <groupId>commons-codec</groupId>
+      <artifactId>commons-codec</artifactId>
+      <version>1.13</version>
+    </dependency>
+
   </dependencies>
 
   <build>

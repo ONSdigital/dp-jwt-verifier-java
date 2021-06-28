@@ -3,6 +3,7 @@ package com.github.onsdigital;
 import com.github.onsdigital.exceptions.*;
 import com.github.onsdigital.interfaces.Header;
 import com.github.onsdigital.interfaces.Payload;
+
 import com.github.onsdigital.impl.JWTParser;
 import com.github.onsdigital.impl.UserDataPayload;
 
@@ -10,15 +11,17 @@ import java.time.Instant;
 import java.util.Base64;
 
 import java.lang.NullPointerException;
+import java.security.interfaces.RSAPublicKey;
+import java.security.spec.X509EncodedKeySpec;
 
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.impl.crypto.DefaultJwtSignatureValidator;
 
-import javax.crypto.spec.SecretKeySpec;
+import java.security.KeyFactory;
 
 /**
  * JWTVerifier - decodes and verifies an access token according to
- *               secret key passed it.
+ *               public key passed it.
  */
 public class JWTVerifier {
 
@@ -27,7 +30,12 @@ public class JWTVerifier {
     // class constructor
     JWTVerifier() {}
 
-    public UserDataPayload verifyJWTToken(String token, String secretKey) throws JWTDecodeException, JWTVerificationException, JWTTokenExpiredException {
+    public UserDataPayload verifyJWTToken(String token, String publicKey) throws JWTDecodeException, JWTVerificationException, JWTTokenExpiredException {
+
+        // if publicKey not supplied, error immediately
+        if (publicKey == "" || publicKey == null) {
+            throw new JWTDecodeException("Public Key cannot be empty or null.");
+        }
 
         String[] chunks;
         Header header;
@@ -76,15 +84,16 @@ public class JWTVerifier {
 
         SignatureAlgorithm sa = SignatureAlgorithm.forName(header.getAlgorithm());
 
-        // check secretKey
-        SecretKeySpec secretKeySpec;
+        RSAPublicKey pubKey;
         try {
-            secretKeySpec = new SecretKeySpec(secretKey.getBytes(), sa.getJcaName());
-        } catch (IllegalArgumentException  e) {
-            throw new JWTDecodeException("Secret key check failed - null or empty key supplied.");
+            KeyFactory kf = KeyFactory.getInstance("RSA");
+            byte[] encodedKey = decoder.decode(publicKey);
+            pubKey = (RSAPublicKey) kf.generatePublic(new X509EncodedKeySpec(encodedKey));
+        } catch (Exception e) {
+            throw new JWTDecodeException("Public key check failed - "+e.getMessage());
         }
 
-        DefaultJwtSignatureValidator validator = new DefaultJwtSignatureValidator(sa, secretKeySpec);
+        DefaultJwtSignatureValidator validator = new DefaultJwtSignatureValidator(sa, pubKey);
 
         if (!validator.isValid(tokenWithoutSignature, signature)) {
             throw new JWTVerificationException("Verification of JWT token integrity failed.");

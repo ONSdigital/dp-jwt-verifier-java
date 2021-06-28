@@ -7,9 +7,9 @@ import com.github.onsdigital.interfaces.JWTHandler;
 public class JWTHandlerImpl implements JWTHandler {
 
     @Override
-    public UserDataPayload verifyJWT(String token, String secretKey) throws JWTVerificationException, JWTDecodeException, JWTTokenExpiredException {
+    public UserDataPayload verifyJWT(String token, String publicKey) throws JWTVerificationException, JWTDecodeException, JWTTokenExpiredException {
         JWTVerifier verify = extracted();   
-        return verify.verifyJWTToken(token, secretKey);
+        return verify.verifyJWTToken(token, publicKey);
     }
 
     private JWTVerifier extracted() {
