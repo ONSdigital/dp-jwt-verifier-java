@@ -10,7 +10,7 @@ Create an instance of the library (uses interface):
 
 Get verification of JWT Access Token (caller gets SIGNING_KEY from config):
 ```
-    UserDataPayload jwtData = this.jwtHandler.verifyJWT(<JWT_ACCESS_TOKEN>, <SIGNING_KEY>);
+    UserDataPayload jwtData = this.jwtHandler.verifyJWT(<JWT_ACCESS_TOKEN>, <PUBLIC_SIGNING_KEY>);
 ```
 
 Will return an object containing user's email and groups they belong to, or error so that the caller can take action.
@@ -27,7 +27,7 @@ import com.github.onsdigital.interfaces.JWTHandler;
     // can be passed is as part of class constructor too
     private JWTHandler jwtHandler = new JWTHandlerImpl();
     try {
-        UserDataPayload jwtData = this.jwtHandler.verifyJWT(<JWT_ACCESS_TOKEN>, <SIGNING_KEY>);
+        UserDataPayload jwtData = this.jwtHandler.verifyJWT(<JWT_ACCESS_TOKEN>, <PUBLIC_SIGNING_KEY>);
         System.out.Println("Users email is: "+jwtData.getEmail());
         System.out.Println("A group user belongs to is: "+jwtData.getGroups()[0]);
         ...
