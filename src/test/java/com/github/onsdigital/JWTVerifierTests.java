@@ -31,13 +31,6 @@ public class JWTVerifierTests
     +"MwIDAQAB";
     
     private final static String USERNAME             = "me.myself@me.myself.io";
-    // error messages
-    private final static String CANNOT_VERIFY_ERROR   = "Verification of JWT token integrity failed.";
-    private final static String PUBLIC_KEY_ERROR      = "Public Key cannot be empty or null.";
-    private final static String INVALID_PAYLOAD_ERROR = "Required JWT payload claim not found [username or cognito:groups].";
-    private final static String EXPIRED_TOKEN_ERROR   = "Access token has expired.";
-    private final static String TOKEN_NOT_VALID_ERROR = "Token format not valid.";
-    private final static String TOKEN_NULL_ERROR      = "Token cannot be null.";
 
     // create JWTVerifier test object
     JWTVerifier verify = new JWTVerifier();
@@ -62,48 +55,48 @@ public class JWTVerifierTests
     void emptySecretKeySupplied() {
         assertThatThrownBy(() -> verify.verifyJWTToken(SIGNED_TOKEN, ""))
             .isInstanceOf(JWTDecodeException.class)
-                .hasMessageContaining(PUBLIC_KEY_ERROR);
+                .hasMessageContaining(verify.PUBLIC_KEY_ERROR);
     }
 
     public @Test
     void noUserNameInPayloadSupplied() {
         assertThatThrownBy(() -> verify.verifyJWTToken(TOKEN_NO_USER, PUBLIC_KEY))
             .isInstanceOf(JWTDecodeException.class)
-                .hasMessageContaining(INVALID_PAYLOAD_ERROR);
+                .hasMessageContaining(verify.INVALID_PAYLOAD_ERROR);
     }
 
     public @Test
     void noGroupsInPayloadSupplied() {
         assertThatThrownBy(() -> verify.verifyJWTToken(TOKEN_NO_GROUPS, PUBLIC_KEY))
             .isInstanceOf(JWTDecodeException.class)
-                .hasMessageContaining(INVALID_PAYLOAD_ERROR);
+                .hasMessageContaining(verify.INVALID_PAYLOAD_ERROR);
     }
 
     public @Test
     void throwErrorVerifyingToken() {
         assertThatThrownBy(() -> verify.verifyJWTToken(INVALID_SIGNED_TOKEN, PUBLIC_KEY))
             .isInstanceOf(JWTVerificationException.class)
-                .hasMessageContaining(CANNOT_VERIFY_ERROR);
+                .hasMessageContaining(verify.CANNOT_VERIFY_ERROR);
     }
 
     public @Test
     void throwErrorExpiredToken() {
         assertThatThrownBy(() -> verify.verifyJWTToken(TOKEN_EXPIRED_TIME, PUBLIC_KEY))
             .isInstanceOf(JWTTokenExpiredException.class)
-                .hasMessageContaining(EXPIRED_TOKEN_ERROR);
+                .hasMessageContaining(verify.EXPIRED_TOKEN_ERROR);
     }
 
     public @Test
     void throwErrorTokenNull() {
         assertThatThrownBy(() -> verify.verifyJWTToken(null, PUBLIC_KEY))
             .isInstanceOf(JWTDecodeException.class)
-                .hasMessageContaining(TOKEN_NULL_ERROR);
+                .hasMessageContaining(verify.TOKEN_NULL_ERROR);
     }
 
     public @Test
     void throwErrorTokenFormatNotValid() {
         assertThatThrownBy(() -> verify.verifyJWTToken("", PUBLIC_KEY))
             .isInstanceOf(JWTDecodeException.class)
-                .hasMessageContaining(TOKEN_NOT_VALID_ERROR);
+                .hasMessageContaining(verify.TOKEN_NOT_VALID_ERROR);
     }
 }
