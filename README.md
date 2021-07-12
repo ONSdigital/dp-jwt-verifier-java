@@ -8,7 +8,7 @@ Create an instance of the library (uses interface):
     private JWTHandler jwtHandler = new JWTHandlerImpl();
 ```
 
-Get verification of JWT Access Token (caller gets SIGNING_KEY from config):
+Get verification of JWT Access Token (caller gets <PUBLIC_SIGNING_KEY> from config):
 ```java
     UserDataPayload jwtData = this.jwtHandler.verifyJWT(String <JWT_ACCESS_TOKEN>, String <PUBLIC_SIGNING_KEY>);
 ```
