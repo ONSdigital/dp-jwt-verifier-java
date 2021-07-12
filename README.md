@@ -9,7 +9,7 @@ Create an instance of the library (uses interface):
 ```
 
 Get verification of JWT Access Token (caller gets SIGNING_KEY from config):
-```
+```java
     UserDataPayload jwtData = this.jwtHandler.verifyJWT(String <JWT_ACCESS_TOKEN>, String <PUBLIC_SIGNING_KEY>);
 ```
 
