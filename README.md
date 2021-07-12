@@ -1,5 +1,5 @@
 # dp-jwt-verifier-java
-A Java JSON Web Token (JWT) verification library, designed to decode and verify an access token JWT using an RSA public signing key (asymmetric encyption).
+A Java JSON Web Token (JWT) verification library, designed to decode and verify a JWT Access Token using an RSA public signing key (asymmetric encyption).
 
 ## Example
 
@@ -8,7 +8,7 @@ Create an instance of the library (uses interface):
     private JWTHandler jwtHandler = new JWTHandlerImpl();
 ```
 
-Get verification of JWT Access Token (caller gets <PUBLIC_SIGNING_KEY> from config):
+Get verification of JWT Access Token (caller gets `<PUBLIC_SIGNING_KEY>` from config):
 ```java
     UserDataPayload jwtData = this.jwtHandler.verifyJWT(String <JWT_ACCESS_TOKEN>, String <PUBLIC_SIGNING_KEY>);
 ```
@@ -18,9 +18,11 @@ Will return an object containing user's email and groups they belong to, or erro
 ### Populate an object example
 
 ```java
+import com.github.onsdigital.exceptions.*;
 import com.github.onsdigital.JWTHandlerImpl;
 import com.github.onsdigital.impl.UserDataPayload;
 import com.github.onsdigital.interfaces.JWTHandler;
+
 ...
 ...
 ...
