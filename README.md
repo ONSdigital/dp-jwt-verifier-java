@@ -4,7 +4,7 @@ A Java JSON Web Token (JWT) verification library, designed to decode and verify 
 ## Example
 
 Create an instance of the library (uses interface):
-```
+```java
     private JWTHandler jwtHandler = new JWTHandlerImpl();
 ```
 
