@@ -112,8 +112,8 @@ public class JWTVerifier {
 
         // build pojo object to return to caller
         return new UserDataPayload(
-            payload.getClaim("username").toString(),
-                payload.getClaim("cognito:groups").asStringArray()
+            payload.getClaim("username").asString(),
+            payload.getClaim("cognito:groups").asStringArray()
         );
     }
 }
