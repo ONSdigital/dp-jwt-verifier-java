@@ -1,48 +1,63 @@
 # dp-jwt-verifier-java
-A Java JSON Web Token (JWT) verification library, designed to decode and verify a JWT Access Token using an RSA public signing key (asymmetric encyption).
+
+A Java JSON Web Token (JWT) verification library, designed to decode and verify a JWT Access Token using an RSA public signing key (asymmetric encryption).
 
 ## Example
 
-Create an instance of the library (uses interface):
-```java
-    private JWTHandler jwtHandler = new JWTHandlerImpl();
-```
-
-Get verification of JWT Access Token (caller gets `<PUBLIC_SIGNING_KEY>` from config):
-```java
-    UserDataPayload jwtData = this.jwtHandler.verifyJWT(String <JWT_ACCESS_TOKEN>, String <PUBLIC_SIGNING_KEY>);
-```
-
-Will return an object containing user's email and groups they belong to, or error so that the caller can take action.
-
-### Populate an object example
+Create an instance of the library:
 
 ```java
-import com.github.onsdigital.exceptions.*;
-import com.github.onsdigital.JWTHandlerImpl;
-import com.github.onsdigital.impl.UserDataPayload;
-import com.github.onsdigital.interfaces.JWTHandler;
+import com.github.onsdigital.JWTVerifier;
+import com.github.onsdigital.JWTVerifierImpl;
 
-...
-...
-...
-    // can be passed is as part of class constructor too
-    private JWTHandler jwtHandler = new JWTHandlerImpl();
-    try {
-        UserDataPayload jwtData = this.jwtHandler.verifyJWT(<JWT_ACCESS_TOKEN>, <PUBLIC_SIGNING_KEY>);
-        System.out.Println("Users email is: "+jwtData.getEmail());
-        System.out.Println("A group user belongs to is: "+jwtData.getGroups()[0]);
-        ...
-        ...
-    } catch (JWTTokenExpiredException e) {
-        throw new ...("Error: ", e);
-    } catch (JWTVerificationException e) {
-        throw new ...("Error: ", e);
-    } catch (JWTDecodeException e) {
-        throw new ...("Error: ", e);
+public class Example {
+    private String signingKeyId = "<PUBLIC_SIGNING_KEY_ID>";
+    private String signingKey = "<PUBLIC_SIGNING_KEY>";
+    private JWTVerifier jwtVerifier;
+    
+    public Example() {
+        Map<String, String> signingKeys = new HashMap<>();
+        signingKeys.put(signingKeyId, signingKey);
+        this.jwtVerifier = new JWTVerifierImpl(signingKeys);
     }
-
+}
 ```
+
+The caller should likely provide the public signing and key ID rather than using constants.
+The `<PUBLIC_SIGNING_KEY` must be a base64 encoded DER formatted public key.
+
+Parse and verify the JWT Token:
+
+```java
+import com.github.onsdigital.JWTVerifier;
+import com.github.onsdigital.UserDataPayload;
+import com.github.onsdigital.exceptions.JWTDecodeException;
+import com.github.onsdigital.exceptions.JWTTokenExpiredException;
+import com.github.onsdigital.exceptions.JWTVerificationException;
+
+public class Example {
+    private JWTVerifier jwtVerifier;
+
+    public void example() {
+        String token = "<JWT_ACCESS_TOKEN>";
+        try {
+            UserDataPayload userData = jwtVerifier.verify(token);
+            System.out.printf("id: '%s'\nemail: '%s'\ngroups: '%s'\n", userData.getId(), userData.getEmail(), userData.getGroups());
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+        } catch (JWTDecodeException e) {
+            e.printStackTrace();
+        } catch (JWTTokenExpiredException e) {
+            e.printStackTrace();
+        } catch (JWTVerificationException e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+If the signature is valid, an object containing the user's email and a list of groups they belong to is returned.
+Otherwise, an exception is thrown so that the caller can take action.
 
 ### Useful tooling
 
