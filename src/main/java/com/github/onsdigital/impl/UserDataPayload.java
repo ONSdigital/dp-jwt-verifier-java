@@ -1,24 +1,28 @@
 package com.github.onsdigital.impl;
 
-import com.github.onsdigital.interfaces.UserData;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
-public class UserDataPayload implements UserData {
+public class UserDataPayload {
 
     private final String username;
-    private final String[] groups;
+    private final List<String> groups;
 
-    public UserDataPayload(String username, String[] groups) {
+    public UserDataPayload(String username, List<String> groups) {
         this.username = username;
-        this.groups = groups;
+
+        if (groups == null) {
+            groups = new ArrayList<>();
+        }
+        this.groups = Collections.unmodifiableList(new ArrayList<>(groups));
     }
 
-    @Override
     public String getEmail() {
         return username;
     }
 
-    @Override
-    public String[] getGroups() {
+    public List<String> getGroups() {
         return groups;
     }
 }
