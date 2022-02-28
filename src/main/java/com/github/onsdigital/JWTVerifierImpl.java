@@ -18,16 +18,16 @@ import java.util.Map;
 
 /**
  * JWTVerifier - decodes and verifies an access token according to
- *               public keys passed to it.
+ * public keys passed to it.
  */
 public class JWTVerifierImpl implements JWTVerifier {
 
     static final String SIGNATURE_VERIFICATION_ERROR = "JWT signature verification failed.";
-    static final String ALGORITHM_ERROR              = "JWT algorithm is not supported by the provided key.";
-    static final String MISSING_USERNAME_ERROR       = "JWT payload 'username' claim not found.";
-    static final String MISSING_USER_ID_ERROR        = "JWT payload 'sub' (i.e. user id) claim not found.";
-    static final String EXPIRED_TOKEN_ERROR          = "JWT token has expired.";
-    static final String TOKEN_NOT_VALID_ERROR        = "JWT format not valid.";
+    static final String ALGORITHM_ERROR = "JWT algorithm is not supported by the provided key.";
+    static final String MISSING_USERNAME_ERROR = "JWT payload 'username' claim not found.";
+    static final String MISSING_USER_ID_ERROR = "JWT payload 'sub' (i.e. user id) claim not found.";
+    static final String EXPIRED_TOKEN_ERROR = "JWT token has expired.";
+    static final String TOKEN_NOT_VALID_ERROR = "JWT format not valid.";
 
     private final JwtParser jwtParser;
 
@@ -38,7 +38,7 @@ public class JWTVerifierImpl implements JWTVerifier {
      * @throws IllegalArgumentException if the public signing keys provided are invalid
      */
     public JWTVerifierImpl(Map<String, String> signingKeys) {
-        SigningKeyResolver signingKeyResolver = new SigningKeyResolverImpl(signingKeys);
+        final SigningKeyResolver signingKeyResolver = new SigningKeyResolverImpl(signingKeys);
 
         this.jwtParser = Jwts.parserBuilder()
                 .setSigningKeyResolver(signingKeyResolver)
@@ -50,9 +50,9 @@ public class JWTVerifierImpl implements JWTVerifier {
      *
      * @param token the JWT token to verify
      * @return the {@link UserDataPayload} representing the user details from the JWT
-     * @throws JWTVerificationException
-     * @throws JWTDecodeException
-     * @throws JWTTokenExpiredException
+     * @throws JWTVerificationException if the JWT signature is invalid or uses an unsupported algorithm
+     * @throws JWTDecodeException       if the JWT is malformed or does not contain the user's username (i.e. email) or ID
+     * @throws JWTTokenExpiredException if the JWT token has expired
      */
     @Override
     public UserDataPayload verify(String token) throws JWTVerificationException, JWTDecodeException, JWTTokenExpiredException {
@@ -64,7 +64,7 @@ public class JWTVerifierImpl implements JWTVerifier {
 
             userId = claims.get("sub", String.class);
             username = claims.get("username", String.class);
-            groups = claims.get("cognito:groups", ArrayList.class);
+            groups = convertGroupsToStrings(claims.get("cognito:groups", ArrayList.class));
         } catch (ExpiredJwtException e) {
             throw new JWTTokenExpiredException(EXPIRED_TOKEN_ERROR, e);
         } catch (UnsupportedJwtException e) {
@@ -85,5 +85,18 @@ public class JWTVerifierImpl implements JWTVerifier {
 
         // build pojo object to return to caller
         return new UserDataPayload(userId, username, groups);
+    }
+
+    private ArrayList<String> convertGroupsToStrings(ArrayList<?> in) {
+        ArrayList<String> out = new ArrayList<>();
+
+        if (in == null) {
+            return out;
+        }
+
+        for (Object o : in) {
+            out.add(o.toString());
+        }
+        return out;
     }
 }

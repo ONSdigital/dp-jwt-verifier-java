@@ -7,7 +7,7 @@ audit:
 
 .PHONY: lint
 lint:
-	mvn checkstyle:check test-compile spotbugs:check
+	mvn clean checkstyle:check test-compile spotbugs:check
 
 .PHONY: build
 build:

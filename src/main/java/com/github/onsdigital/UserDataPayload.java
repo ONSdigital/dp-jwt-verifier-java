@@ -4,20 +4,28 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class UserDataPayload {
+public final class UserDataPayload {
 
     private final String id;
-    private final String username;
+    private final String email;
     private final List<String> groups;
 
-    public UserDataPayload(String id, String username, List<String> groups) {
+    /**
+     * Constructs a new {@link UserDataPayload}.
+     *
+     * @param id     the user's ID
+     * @param email  the user's email
+     * @param groups the list of group IDs for the groups the user is a member of
+     */
+    public UserDataPayload(String id, String email, List<String> groups) {
         this.id = id;
-        this.username = username;
+        this.email = email;
 
         if (groups == null) {
-            groups = new ArrayList<>();
+            this.groups = new ArrayList<>();
+        } else {
+            this.groups = new ArrayList<>(groups);
         }
-        this.groups = Collections.unmodifiableList(new ArrayList<>(groups));
     }
 
     public String getId() {
@@ -25,10 +33,10 @@ public class UserDataPayload {
     }
 
     public String getEmail() {
-        return username;
+        return email;
     }
 
     public List<String> getGroups() {
-        return groups;
+        return Collections.unmodifiableList(groups);
     }
 }
