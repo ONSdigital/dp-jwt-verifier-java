@@ -11,18 +11,17 @@
   <packaging>jar</packaging>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.target>1.8</maven.compiler.target>
-    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>8</maven.compiler.target>
+    <maven.compiler.source>8</maven.compiler.source>
 
     <io.jsonwebtoken.jjwt.version>0.11.2</io.jsonwebtoken.jjwt.version>
 
     <junit.jupiter.version>5.8.2</junit.jupiter.version>
     <assertj.core.version>3.22.0</assertj.core.version>
 
-    <maven.clean.plugin.version>3.1.0</maven.clean.plugin.version>
-    <maven.compiler.plugin.version>3.10.0</maven.compiler.plugin.version>
-    <maven.surefire.plugin.version>2.22.2</maven.surefire.plugin.version>
-    <maven.jar.plugin.version>3.0.2</maven.jar.plugin.version>
+    <maven.sonatype.ossindex.plugin.version>3.1.0</maven.sonatype.ossindex.plugin.version>
+    <maven.spotbugs.plugin.version>4.5.3.0</maven.spotbugs.plugin.version>
+    <maven.spotbugs.security.plugin.version>1.11.0</maven.spotbugs.security.plugin.version>
   </properties>
 
   <dependencies>
@@ -63,24 +62,81 @@
     <pluginManagement>
       <plugins>
         <plugin>
-          <artifactId>maven-clean-plugin</artifactId>
-          <version>${maven.clean.plugin.version}</version>
+          <groupId>org.sonatype.ossindex.maven</groupId>
+          <artifactId>ossindex-maven-plugin</artifactId>
+          <version>${maven.sonatype.ossindex.plugin.version}</version>
+          <executions>
+            <execution>
+              <id>audit-dependencies-critical</id>
+              <phase>validate</phase>
+              <goals>
+                <goal>audit</goal>
+              </goals>
+              <!-- configuration for mvn validate -->
+              <configuration>
+                <!-- if CVSS >= 9.0 (critical) then ERROR else WARN -->
+                <fail>true</fail>
+                <cvssScoreThreshold>9.0</cvssScoreThreshold>
+              </configuration>
+            </execution>
+          </executions>
+          <!-- configuration for mvn ossindex:audit -->
+          <configuration>
+            <!-- if CVSS >= 7.0 (high or critical) then ERROR else WARN -->
+            <fail>true</fail>
+            <cvssScoreThreshold>7.0</cvssScoreThreshold>
+            <excludeCoordinates>
+              <!-- Add exclusions here -->
+            </excludeCoordinates>
+          </configuration>
         </plugin>
+
         <plugin>
-          <artifactId>maven-compiler-plugin</artifactId>
-          <version>${maven.compiler.plugin.version}</version>
+          <groupId>com.github.spotbugs</groupId>
+          <artifactId>spotbugs-maven-plugin</artifactId>
+          <version>${maven.spotbugs.plugin.version}</version>
+          <configuration>
+            <effort>Max</effort>
+            <threshold>medium</threshold>
+            <failOnError>true</failOnError>
+            <excludeFilterFile>spotbugs-exclude.xml</excludeFilterFile>
+            <plugins>
+              <plugin>
+                <groupId>com.h3xstream.findsecbugs</groupId>
+                <artifactId>findsecbugs-plugin</artifactId>
+                <version>${maven.spotbugs.security.plugin.version}</version>
+              </plugin>
+            </plugins>
+          </configuration>
         </plugin>
+
         <plugin>
-          <artifactId>maven-surefire-plugin</artifactId>
-          <version>2.22.2</version>
-        </plugin>
-        <plugin>
-          <artifactId>maven-failsafe-plugin</artifactId>
-          <version>2.22.2</version>
-        </plugin>
-        <plugin>
-          <artifactId>maven-jar-plugin</artifactId>
-          <version>${maven.jar.plugin.version}</version>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-checkstyle-plugin</artifactId>
+          <version>3.1.2</version>
+          <dependencies>
+            <dependency>
+              <groupId>com.puppycrawl.tools</groupId>
+              <artifactId>checkstyle</artifactId>
+              <version>9.3</version>
+            </dependency>
+          </dependencies>
+          <configuration>
+            <configLocation>checkstyle.xml</configLocation>
+            <encoding>UTF-8</encoding>
+            <consoleOutput>true</consoleOutput>
+            <failsOnError>true</failsOnError>
+            <linkXRef>false</linkXRef>
+          </configuration>
+          <executions>
+            <execution>
+              <id>validate</id>
+              <phase>validate</phase>
+              <goals>
+                <goal>check</goal>
+              </goals>
+            </execution>
+          </executions>
         </plugin>
       </plugins>
     </pluginManagement>
