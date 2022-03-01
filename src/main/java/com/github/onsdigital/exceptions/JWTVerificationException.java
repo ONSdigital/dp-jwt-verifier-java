@@ -1,5 +1,8 @@
 package com.github.onsdigital.exceptions;
 
+/**
+ * JWTVerificationException is the exception used for cases when verification of the JWT signature fails.
+ */
 public class JWTVerificationException extends RuntimeException {
 
     /**

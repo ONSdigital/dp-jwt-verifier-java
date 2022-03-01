@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * UserDataPayload model contains the user detail fields from the JWT tokens.
+ */
 public final class UserDataPayload {
 
     private final String id;
@@ -36,6 +39,11 @@ public final class UserDataPayload {
         return email;
     }
 
+    /**
+     * Gets the list of groups the user is a member of.
+     *
+     * @return the list of IDs of the groups the user is a member of as an unmodifiable list.
+     */
     public List<String> getGroups() {
         return Collections.unmodifiableList(groups);
     }

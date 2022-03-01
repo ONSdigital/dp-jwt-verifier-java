@@ -26,7 +26,7 @@ public final class SigningKeyResolverImpl extends SigningKeyResolverAdapter {
     static final String PUBLIC_KEY_ERROR = "Public Key not found matching 'kid'";
     private static final String RSA = "RSA";
 
-    private final Map<String, Key> signingKeys = new HashMap<>();
+    private final Map<String, Key> signingKeys;
 
     /**
      * Construct a new {@link SigningKeyResolverImpl}.
@@ -38,6 +38,8 @@ public final class SigningKeyResolverImpl extends SigningKeyResolverAdapter {
             throw new IllegalArgumentException(KEYS_REQUIRED_ERROR);
         }
 
+        this.signingKeys = new HashMap<>();
+
         Base64.Decoder decoder = Base64.getDecoder();
         for (Map.Entry<String, String> publicKey : signingKeys.entrySet()) {
             try {
@@ -45,7 +47,9 @@ public final class SigningKeyResolverImpl extends SigningKeyResolverAdapter {
                 byte[] encodedKey = decoder.decode(publicKey.getValue());
                 PublicKey pubKey = kf.generatePublic(new X509EncodedKeySpec(encodedKey));
                 this.signingKeys.put(publicKey.getKey(), pubKey);
-            } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+            } catch (NoSuchAlgorithmException ignore) {
+                // ignore this as the algorithm is specified as a constant so will be valid
+            } catch (InvalidKeySpecException e) {
                 throw new IllegalArgumentException(PUBLIC_KEY_CHECK_ERROR + e.getMessage());
             }
         }

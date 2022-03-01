@@ -1,5 +1,8 @@
 package com.github.onsdigital.exceptions;
 
+/**
+ * JWTTokenExpiredException is the exception used when the JWT token has expired.
+ */
 public class JWTTokenExpiredException extends RuntimeException {
 
     /**

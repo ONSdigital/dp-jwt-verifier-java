@@ -95,7 +95,9 @@ public class JWTVerifierImpl implements JWTVerifier {
         }
 
         for (Object o : in) {
-            out.add(o.toString());
+            if (o != null) {
+                out.add(o.toString());
+            }
         }
         return out;
     }
