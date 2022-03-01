@@ -1,5 +1,7 @@
 package com.github.onsdigital;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -25,9 +27,9 @@ public final class UserDataPayload {
         this.email = email;
 
         if (groups == null) {
-            this.groups = new ArrayList<>();
+            this.groups = Collections.unmodifiableList(new ArrayList<>());
         } else {
-            this.groups = new ArrayList<>(groups);
+            this.groups = Collections.unmodifiableList(new ArrayList<>(groups));
         }
     }
 
@@ -44,7 +46,8 @@ public final class UserDataPayload {
      *
      * @return the list of IDs of the groups the user is a member of as an unmodifiable list.
      */
+    @SuppressFBWarnings(value = "EI_EXPOSE_REP", justification = "Constructor has made list unmodifiable")
     public List<String> getGroups() {
-        return Collections.unmodifiableList(groups);
+        return groups;
     }
 }

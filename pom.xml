@@ -19,6 +19,7 @@
     <junit.jupiter.version>5.8.2</junit.jupiter.version>
     <assertj.core.version>3.22.0</assertj.core.version>
     <mockito.core.version>4.3.1</mockito.core.version>
+    <findbugs.annotations.version>3.0.1</findbugs.annotations.version>
 
     <maven.sonatype.ossindex.plugin.version>3.1.0</maven.sonatype.ossindex.plugin.version>
     <maven.spotbugs.plugin.version>4.5.3.0</maven.spotbugs.plugin.version>
@@ -64,6 +65,12 @@
       <artifactId>mockito-core</artifactId>
       <version>${mockito.core.version}</version>
       <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>com.google.code.findbugs</groupId>
+      <artifactId>annotations</artifactId>
+      <version>${findbugs.annotations.version}</version>
     </dependency>
   </dependencies>
 
