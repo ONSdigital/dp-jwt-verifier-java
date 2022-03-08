@@ -3,17 +3,22 @@ package com.github.onsdigital;
 import com.github.onsdigital.exceptions.JWTDecodeException;
 import com.github.onsdigital.exceptions.JWTTokenExpiredException;
 import com.github.onsdigital.exceptions.JWTVerificationException;
-import org.assertj.core.api.Assertions;
+import com.google.api.client.http.HttpResponse;
+import org.hamcrest.CoreMatchers;
+import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.BDDMockito.given;
+
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class JWTVerifierImplTests {
     private final static String SIGNED_TOKEN = "eyJhbGciOiJSUzI1NiIsImtpZCI6IjEyMzRleGFtcGxlPSJ9.eyJzdWIiOiJhYWFhYWFhYS1iYmJiLWNjY2MtZGRkZC1lZWVlZWVlZWVlZWUiLCJkZXZpY2Vfa2V5IjoiYWFhYWFhYWEtYmJiYi1jY2NjLWRkZGQtZWVlZWVlZWVlZWVlIiwiY29nbml0bzpncm91cHMiOlsiYWRtaW4iLCJkYXRhIiwicHVibGlzaGluZyIsInRlc3QiXSwidG9rZW5fdXNlIjoiYWNjZXNzIiwic2NvcGUiOiJhd3MuY29nbml0by5zaWduaW4udXNlci5hZG1pbiIsImF1dGhfdGltZSI6MTU2MjE5MDUyNCwiaXNzIjoiaHR0cHM6Ly9jb2duaXRvLWlkcC51cy13ZXN0LTIuYW1hem9uYXdzLmNvbS91cy13ZXN0LTJfZXhhbXBsZSIsImV4cCI6Nzk1NzA3MTI5MSwiaWF0IjoxNTYyMTkwNTI0LCJvcmlnaW5fanRpIjoiYWFhYWFhYWEtYmJiYi1jY2NjLWRkZGQtZWVlZWVlZWVlZWVlIiwianRpIjoiYWFhYWFhYWEtYmJiYi1jY2NjLWRkZGQtZWVlZWVlZWVlZWVlIiwiY2xpZW50X2lkIjoiNTdjYmlzaGs0ajI0cGFiYzEyMzQ1Njc4OTAiLCJ1c2VybmFtZSI6ImphbmVkb2VAZXhhbXBsZS5jb20ifQ.MrdJLEQ_YIG9uxJYguy9343CsW3WQ_TbaVKvbk0-ie_y1_WZF8wbGDybxfBeAQ9cy63f-bsuw4xQU8AavDNolR7F7bwWLPDAwkywauQXnUseDuEiNaA7xq386I0WmrUsTpNmCT7NgHDkDiBLSItxfd1aUxi2Z3lxr49TnzxKFmwZOGNE7k7xSlqzlwOmk78DvvI5RFknmzl1B3LJy7cqEnLK19LqcJcZlC5fzZH23fc8F7wAoKH755ARCVm2HrU2r_8pBXKl89siD0D6oy2f9NWUQikdP9XuCIPnDXNDSzdaDmqxz82vpm2rhWAwxfXLoIyR1eu9Za8VcN1Mk6oWrA";
@@ -36,6 +41,9 @@ class JWTVerifierImplTests {
 
     private final static String PUBLIC_KEY_ID = "1234example=";
 
+    Map<String, String> signingKeys = new HashMap<String, String>() {{
+        put(PUBLIC_KEY_ID, PUBLIC_KEY);
+    }};
     /**
      * Class under test
      */
@@ -43,8 +51,6 @@ class JWTVerifierImplTests {
 
     @BeforeEach
     void beforeEach() {
-        Map<String, String> signingKeys = new HashMap<>();
-        signingKeys.put(PUBLIC_KEY_ID, PUBLIC_KEY);
         verifier = new JWTVerifierImpl(signingKeys);
     }
 
@@ -116,5 +122,53 @@ class JWTVerifierImplTests {
         assertThatThrownBy(() -> verifier.verify(""))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("JWT String argument cannot be null or empty.");
+    }
+
+    @Test
+    void verify_ShouldFetchJWTKeys_WhenIdentityApiUrlIsProvided() throws Exception {
+        HttpResponse mockResponse = Mockito.mock(HttpResponse.class);
+        given(mockResponse.getStatusCode()).willReturn(200);
+        Mockito.when(mockResponse.parseAs(Mockito.any())).thenReturn(signingKeys);
+        JWTKeyProvider jwtKeyProvider = Mockito.mock(JWTKeyProvider.class);
+        Mockito.when(jwtKeyProvider.getJwtKeys()).thenCallRealMethod();
+        Mockito.when(jwtKeyProvider.getJwtKeysFromIdentityApi()).thenReturn(mockResponse);
+
+        JWTVerifierImpl jwtVerifier = new JWTVerifierImpl(jwtKeyProvider);
+        UserDataPayload jwtData = jwtVerifier.verify(SIGNED_TOKEN);
+
+        List<String> grps = jwtData.getGroups();
+        assertEquals(USER_ID, jwtData.getId());
+        assertEquals(USERNAME, jwtData.getEmail());
+        assertEquals(4, grps.size());
+        assertEquals("admin", grps.get(0));
+        assertEquals("data", grps.get(1));
+        assertEquals("publishing", grps.get(2));
+        assertEquals("test", grps.get(3));
+    }
+
+    @Test
+    void verify_ShouldThrowException_WhenFailedToFetchJwtKeys() throws Exception {
+        HttpResponse mockResponse = Mockito.mock(HttpResponse.class);
+        given(mockResponse.getStatusCode()).willReturn(500);
+        Mockito.when(mockResponse.parseAs(Mockito.any())).thenReturn(signingKeys);
+        JWTKeyProvider jwtKeyProvider = Mockito.mock(JWTKeyProvider.class);
+        Mockito.when(jwtKeyProvider.getJwtKeys()).thenCallRealMethod();
+        Mockito.when(jwtKeyProvider.getJwtKeysFromIdentityApi()).thenReturn(mockResponse);
+
+        Exception exception = assertThrows(Exception.class, () -> new JWTVerifierImpl(jwtKeyProvider));
+        Assert.assertThat(exception.getMessage(), CoreMatchers.containsString("Failed to get jet keys:"));
+    }
+
+    @Test
+    void verify_ShouldThrowException_WhenIdentityApiReturnEmptySuccessResponse() throws Exception {
+        HttpResponse mockResponse = Mockito.mock(HttpResponse.class);
+        given(mockResponse.getStatusCode()).willReturn(200);
+        Mockito.when(mockResponse.parseAs(Mockito.any())).thenReturn(new HashMap<String, String>());
+        JWTKeyProvider jwtKeyProvider = Mockito.mock(JWTKeyProvider.class);
+        Mockito.when(jwtKeyProvider.getJwtKeys()).thenCallRealMethod();
+        Mockito.when(jwtKeyProvider.getJwtKeysFromIdentityApi()).thenReturn(mockResponse);
+
+        Exception exception = assertThrows(Exception.class, () -> new JWTVerifierImpl(jwtKeyProvider));
+        Assert.assertThat(exception.getMessage(), CoreMatchers.containsString("JWT keys not found in the response"));
     }
 }

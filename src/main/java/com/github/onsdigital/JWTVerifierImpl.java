@@ -3,6 +3,11 @@ package com.github.onsdigital;
 import com.github.onsdigital.exceptions.JWTDecodeException;
 import com.github.onsdigital.exceptions.JWTTokenExpiredException;
 import com.github.onsdigital.exceptions.JWTVerificationException;
+import com.google.api.client.http.*;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.GenericJson;
+import com.google.api.client.util.Data;
+import com.google.api.client.util.ExponentialBackOff;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtParser;
@@ -12,9 +17,8 @@ import io.jsonwebtoken.SigningKeyResolver;
 import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.SignatureException;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.io.IOException;
+import java.util.*;
 
 /**
  * JWTVerifier - decodes and verifies an access token according to
@@ -43,6 +47,29 @@ public class JWTVerifierImpl implements JWTVerifier {
         this.jwtParser = Jwts.parserBuilder()
                 .setSigningKeyResolver(signingKeyResolver)
                 .build();
+    }
+
+
+    JWTVerifierImpl(JWTKeyProvider jwtKeyProvider) throws Exception {
+        Map<String, String> signingKeys = jwtKeyProvider.getJwtKeys();
+        final SigningKeyResolver signingKeyResolver = new SigningKeyResolverImpl(signingKeys);
+
+        this.jwtParser = Jwts.parserBuilder()
+                .setSigningKeyResolver(signingKeyResolver)
+                .build();
+    }
+
+    /**
+     * Initialises a new instance of the {@link JWTVerifierImpl}.
+     *
+     * @param identityAPIURL  the identity api url to fetch jet keys
+     * @param initialInterval the initial interval in milliseconds to be used for exponential retries
+     * @param maxElapsedTime  the max elapsed time in milliseconds to be used for exponential retries
+     * @param maxInterval     the max interval in milliseconds to be used for exponential retries
+     * @throws IllegalArgumentException if the public signing keys provided are invalid
+     */
+    public JWTVerifierImpl(String identityAPIURL, int initialInterval, int maxElapsedTime, int maxInterval) throws Exception {
+        this(new JWTKeyProvider(identityAPIURL, initialInterval, maxElapsedTime, maxInterval));
     }
 
     /**
