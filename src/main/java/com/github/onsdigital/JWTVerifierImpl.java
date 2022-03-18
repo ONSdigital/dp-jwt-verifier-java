@@ -3,11 +3,6 @@ package com.github.onsdigital;
 import com.github.onsdigital.exceptions.JWTDecodeException;
 import com.github.onsdigital.exceptions.JWTTokenExpiredException;
 import com.github.onsdigital.exceptions.JWTVerificationException;
-import com.google.api.client.http.*;
-import com.google.api.client.http.javanet.NetHttpTransport;
-import com.google.api.client.json.GenericJson;
-import com.google.api.client.util.Data;
-import com.google.api.client.util.ExponentialBackOff;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtParser;
@@ -17,8 +12,9 @@ import io.jsonwebtoken.SigningKeyResolver;
 import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.SignatureException;
 
-import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * JWTVerifier - decodes and verifies an access token according to
@@ -69,7 +65,7 @@ public class JWTVerifierImpl implements JWTVerifier {
      * @throws IllegalArgumentException if the public signing keys provided are invalid
      */
     public JWTVerifierImpl(String identityAPIURL, int initialInterval, int maxElapsedTime, int maxInterval) throws Exception {
-        this(new JWTKeyProvider(identityAPIURL, initialInterval, maxElapsedTime, maxInterval));
+        this(new JWTKeyProviderImpl(identityAPIURL, initialInterval, maxElapsedTime, maxInterval));
     }
 
     /**
