@@ -32,7 +32,7 @@ public class JWTKeyProviderImpl implements JWTKeyProvider {
      * @throws IllegalArgumentException if the public signing keys provided are invalid
      */
     JWTKeyProviderImpl(String url, int initialInterval, int maxElapsedTime, int maxInterval) {
-        identityApiUrl = url;
+        this.identityApiUrl = url;
         this.initialInterval = initialInterval;
         this.maxElapsedTime = maxElapsedTime;
         this.maxInterval = maxInterval;
@@ -47,17 +47,28 @@ public class JWTKeyProviderImpl implements JWTKeyProvider {
      */
     @Override
     public Map<String, String> getJwtKeys() throws Exception {
-        HttpResponse response = getJwtKeysFromIdentityApi();
-        if (response.getStatusCode() != HttpStatusCodes.STATUS_CODE_OK) {
-            throw new Exception("Failed to get jet keys:" + response.parseAsString());
-        }
-        Map<String, String> jwtKeys = getJwtKeysFromResponse(response);
-        if (jwtKeys.isEmpty()) {
-            throw new Exception("JWT keys not found in the response");
-        }
-        return jwtKeys;
-    }
+        HttpResponse response = null;
+        try {
+            response = getJwtKeysFromIdentityApi();
 
+            if (response == null) {
+                throw new Exception("Failed to get response from server:" + identityApiUrl);
+            }
+
+            if (response.getStatusCode() != HttpStatusCodes.STATUS_CODE_OK) {
+                throw new Exception("Failed to get jwt keys:" + response.parseAsString());
+            }
+            Map<String, String> jwtKeys = getJwtKeysFromResponse(response);
+            if (jwtKeys.isEmpty()) {
+                throw new Exception("JWT keys not found in the response");
+            }
+            return jwtKeys;
+        } finally {
+            if (response != null) {
+                response.disconnect();
+            }
+        }
+    }
 
     HttpResponse getJwtKeysFromIdentityApi() throws IOException {
         ExponentialBackOff backoff = new ExponentialBackOff.Builder()
@@ -70,18 +81,13 @@ public class JWTKeyProviderImpl implements JWTKeyProvider {
                 .createRequestFactory()
                 .buildGetRequest(new GenericUrl(identityApiUrl))
                 .setUnsuccessfulResponseHandler(new HttpBackOffUnsuccessfulResponseHandler(backoff));
-        HttpResponse response = httpRequest.execute();
-        return response;
+        return httpRequest.execute();
     }
 
     private Map<String, String> getJwtKeysFromResponse(HttpResponse response) throws IOException {
         Map<String, String> signingKeys = new HashMap<>();
-        try {
-            response.parseAs(Data.newMapInstance(HashMap.class).getClass())
-                    .forEach((key, value) -> signingKeys.put(String.valueOf(key), String.valueOf(value)));
-        } finally {
-            response.disconnect();
-        }
+        response.parseAs(Data.newMapInstance(HashMap.class).getClass())
+                .forEach((key, value) -> signingKeys.put(String.valueOf(key), String.valueOf(value)));
         return signingKeys;
     }
 

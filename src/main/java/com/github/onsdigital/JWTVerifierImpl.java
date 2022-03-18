@@ -58,7 +58,7 @@ public class JWTVerifierImpl implements JWTVerifier {
     /**
      * Initialises a new instance of the {@link JWTVerifierImpl}.
      *
-     * @param identityAPIURL  the identity api url to fetch jet keys
+     * @param identityAPIURL  the identity api url to fetch jwt keys
      * @param initialInterval the initial interval in milliseconds to be used for exponential retries
      * @param maxElapsedTime  the max elapsed time in milliseconds to be used for exponential retries
      * @param maxInterval     the max interval in milliseconds to be used for exponential retries

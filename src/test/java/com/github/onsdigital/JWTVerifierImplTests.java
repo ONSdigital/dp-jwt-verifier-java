@@ -143,10 +143,10 @@ class JWTVerifierImplTests {
     @Test
     void verify_ShouldThrowException_WhenFailedToFetchJwtKeys() throws Exception {
         JWTKeyProvider jwtKeyProvider = Mockito.mock(JWTKeyProvider.class);
-        Mockito.when(jwtKeyProvider.getJwtKeys()).thenThrow(new Exception("Failed to get jet keys:"));
+        Mockito.when(jwtKeyProvider.getJwtKeys()).thenThrow(new Exception("Failed to get jwt keys:"));
 
         Exception exception = assertThrows(Exception.class, () -> new JWTVerifierImpl(jwtKeyProvider));
-        Assert.assertThat(exception.getMessage(), CoreMatchers.containsString("Failed to get jet keys:"));
+        Assert.assertThat(exception.getMessage(), CoreMatchers.containsString("Failed to get jwt keys:"));
     }
 
     @Test

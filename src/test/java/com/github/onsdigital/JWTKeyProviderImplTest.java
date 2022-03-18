@@ -12,6 +12,8 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 class JWTKeyProviderImplTest {
 
@@ -32,6 +34,7 @@ class JWTKeyProviderImplTest {
 
         Exception exception = assertThrows(Exception.class, () -> jwtKeyProvider.getJwtKeys());
         Assert.assertThat(exception.getMessage(), CoreMatchers.containsString("JWT keys not found in the response"));
+        verify(mockResponse, times(1)).disconnect();
     }
 
     @Test
@@ -46,6 +49,7 @@ class JWTKeyProviderImplTest {
         Map<String, String> signingKeysFromApi = jwtKeyProvider.getJwtKeys();
 
         assertEquals(signingKeys, signingKeysFromApi);
+        verify(mockResponse, times(1)).disconnect();
     }
 
     @Test
@@ -57,8 +61,21 @@ class JWTKeyProviderImplTest {
         Mockito.when(jwtKeyProvider.getJwtKeys()).thenCallRealMethod();
         Mockito.when(jwtKeyProvider.getJwtKeysFromIdentityApi()).thenReturn(mockResponse);
 
-        Exception exception = assertThrows(Exception.class, () -> jwtKeyProvider.getJwtKeys()   );
-        Assert.assertThat(exception.getMessage(), CoreMatchers.containsString("Failed to get jet keys:"));
+        Exception exception = assertThrows(Exception.class, () -> jwtKeyProvider.getJwtKeys());
+
+        Assert.assertThat(exception.getMessage(), CoreMatchers.containsString("Failed to get jwt keys:"));
+        verify(mockResponse, times(1)).disconnect();
+    }
+
+    @Test
+    void verify_ShouldThrowException_WhenResponseIsNull() throws Exception {
+        JWTKeyProviderImpl jwtKeyProvider = Mockito.mock(JWTKeyProviderImpl.class);
+        Mockito.when(jwtKeyProvider.getJwtKeys()).thenCallRealMethod();
+        Mockito.when(jwtKeyProvider.getJwtKeysFromIdentityApi()).thenReturn(null);
+
+        Exception exception = assertThrows(Exception.class, () -> jwtKeyProvider.getJwtKeys());
+
+        Assert.assertThat(exception.getMessage(), CoreMatchers.containsString("Failed to get response from server:"));
     }
 
 }
