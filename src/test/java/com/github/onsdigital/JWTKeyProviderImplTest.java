@@ -1,16 +1,21 @@
 package com.github.onsdigital;
 
+import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpResponse;
 import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -28,23 +33,22 @@ class JWTKeyProviderImplTest {
         HttpResponse mockResponse = Mockito.mock(HttpResponse.class);
         given(mockResponse.getStatusCode()).willReturn(200);
         Mockito.when(mockResponse.parseAs(Mockito.any())).thenReturn(new HashMap<String, String>());
-        JWTKeyProviderImpl jwtKeyProvider = Mockito.mock(JWTKeyProviderImpl.class);
-        Mockito.when(jwtKeyProvider.getJwtKeys()).thenCallRealMethod();
-        Mockito.when(jwtKeyProvider.getJwtKeysFromIdentityApi()).thenReturn(mockResponse);
+        RequestBuilder mockedRequestBuilder = getMockedRequestBuilder(mockResponse);
+        JWTKeyProviderImpl jwtKeyProvider = new JWTKeyProviderImpl("url", 5, 5, 5, mockedRequestBuilder);
 
         Exception exception = assertThrows(Exception.class, () -> jwtKeyProvider.getJwtKeys());
         Assert.assertThat(exception.getMessage(), CoreMatchers.containsString("JWT keys not found in the response"));
         verify(mockResponse, times(1)).disconnect();
     }
 
+
     @Test
     void verify_ShouldFetchJWTKeys_WhenIdentityApiUrlIsProvided() throws Exception {
         HttpResponse mockResponse = Mockito.mock(HttpResponse.class);
         given(mockResponse.getStatusCode()).willReturn(200);
-        Mockito.when(mockResponse.parseAs(Mockito.any())).thenReturn(signingKeys);
-        JWTKeyProviderImpl jwtKeyProvider = Mockito.mock(JWTKeyProviderImpl.class);
-        Mockito.when(jwtKeyProvider.getJwtKeys()).thenCallRealMethod();
-        Mockito.when(jwtKeyProvider.getJwtKeysFromIdentityApi()).thenReturn(mockResponse);
+        Mockito.when(mockResponse.parseAs(any())).thenReturn(signingKeys);
+        RequestBuilder mockedRequestBuilder = getMockedRequestBuilder(mockResponse);
+        JWTKeyProviderImpl jwtKeyProvider = new JWTKeyProviderImpl("url", 5, 5, 5, mockedRequestBuilder);
 
         Map<String, String> signingKeysFromApi = jwtKeyProvider.getJwtKeys();
 
@@ -56,10 +60,9 @@ class JWTKeyProviderImplTest {
     void verify_ShouldThrowException_WhenFailedToFetchJwtKeys() throws Exception {
         HttpResponse mockResponse = Mockito.mock(HttpResponse.class);
         given(mockResponse.getStatusCode()).willReturn(500);
-        Mockito.when(mockResponse.parseAs(Mockito.any())).thenReturn(signingKeys);
-        JWTKeyProviderImpl jwtKeyProvider = Mockito.mock(JWTKeyProviderImpl.class);
-        Mockito.when(jwtKeyProvider.getJwtKeys()).thenCallRealMethod();
-        Mockito.when(jwtKeyProvider.getJwtKeysFromIdentityApi()).thenReturn(mockResponse);
+        Mockito.when(mockResponse.parseAs(any())).thenReturn(signingKeys);
+        RequestBuilder mockedRequestBuilder = getMockedRequestBuilder(mockResponse);
+        JWTKeyProviderImpl jwtKeyProvider = new JWTKeyProviderImpl("url", 5, 5, 5, mockedRequestBuilder);
 
         Exception exception = assertThrows(Exception.class, () -> jwtKeyProvider.getJwtKeys());
 
@@ -69,13 +72,21 @@ class JWTKeyProviderImplTest {
 
     @Test
     void verify_ShouldThrowException_WhenResponseIsNull() throws Exception {
-        JWTKeyProviderImpl jwtKeyProvider = Mockito.mock(JWTKeyProviderImpl.class);
-        Mockito.when(jwtKeyProvider.getJwtKeys()).thenCallRealMethod();
-        Mockito.when(jwtKeyProvider.getJwtKeysFromIdentityApi()).thenReturn(null);
+        RequestBuilder mockedRequestBuilder = getMockedRequestBuilder(null);
+        JWTKeyProviderImpl jwtKeyProvider = new JWTKeyProviderImpl("url", 5, 5, 5, mockedRequestBuilder);
 
         Exception exception = assertThrows(Exception.class, () -> jwtKeyProvider.getJwtKeys());
 
         Assert.assertThat(exception.getMessage(), CoreMatchers.containsString("Failed to get response from server:"));
     }
 
+    private RequestBuilder getMockedRequestBuilder(HttpResponse mockResponse) throws IOException {
+        HttpRequest mockRequest = Mockito.mock(HttpRequest.class);
+        given(mockRequest.execute()).willReturn(mockResponse);
+
+        RequestBuilder mockRequestBuilder = Mockito.mock(RequestBuilder.class);
+        given(mockRequestBuilder.getRequest(anyString(), anyInt(), anyInt(), anyInt())).willReturn(mockRequest);
+
+        return mockRequestBuilder;
+    }
 }

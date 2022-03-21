@@ -65,7 +65,7 @@ public class JWTVerifierImpl implements JWTVerifier {
      * @throws IllegalArgumentException if the public signing keys provided are invalid
      */
     public JWTVerifierImpl(String identityAPIURL, int initialInterval, int maxElapsedTime, int maxInterval) throws Exception {
-        this(new JWTKeyProviderImpl(identityAPIURL, initialInterval, maxElapsedTime, maxInterval));
+        this(new JWTKeyProviderImpl(identityAPIURL, initialInterval, maxElapsedTime, maxInterval, new RequestBuilder()));
     }
 
     /**

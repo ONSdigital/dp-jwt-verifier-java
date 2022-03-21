@@ -1,13 +1,9 @@
 package com.github.onsdigital;
 
-import com.google.api.client.http.GenericUrl;
-import com.google.api.client.http.HttpBackOffUnsuccessfulResponseHandler;
 import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpResponse;
 import com.google.api.client.http.HttpStatusCodes;
-import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.util.Data;
-import com.google.api.client.util.ExponentialBackOff;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -17,6 +13,7 @@ import java.util.Map;
  * JWTKeyProviderImpl - Fetches JWT signing keys from a service according to the configs passed to it.
  */
 public class JWTKeyProviderImpl implements JWTKeyProvider {
+    private RequestBuilder requestBuilder;
     private String identityApiUrl;
     private int initialInterval;
     private int maxElapsedTime;
@@ -29,13 +26,15 @@ public class JWTKeyProviderImpl implements JWTKeyProvider {
      * @param initialInterval the initial interval in milliseconds to be used for exponential retries
      * @param maxElapsedTime  the max elapsed time in milliseconds to be used for exponential retries
      * @param maxInterval     the max interval in milliseconds to be used for exponential retries
+     * @param requestBuilder  the http request builder to be used to fetch the keys
      * @throws IllegalArgumentException if the public signing keys provided are invalid
      */
-    JWTKeyProviderImpl(String url, int initialInterval, int maxElapsedTime, int maxInterval) {
+    JWTKeyProviderImpl(String url, int initialInterval, int maxElapsedTime, int maxInterval, RequestBuilder requestBuilder) {
         this.identityApiUrl = url;
         this.initialInterval = initialInterval;
         this.maxElapsedTime = maxElapsedTime;
         this.maxInterval = maxInterval;
+        this.requestBuilder = requestBuilder;
     }
 
 
@@ -49,7 +48,8 @@ public class JWTKeyProviderImpl implements JWTKeyProvider {
     public Map<String, String> getJwtKeys() throws Exception {
         HttpResponse response = null;
         try {
-            response = getJwtKeysFromIdentityApi();
+            HttpRequest request = requestBuilder.getRequest(identityApiUrl, initialInterval, maxElapsedTime, maxInterval);
+            response = request.execute();
 
             if (response == null) {
                 throw new Exception("Failed to get response from server:" + identityApiUrl);
@@ -68,20 +68,6 @@ public class JWTKeyProviderImpl implements JWTKeyProvider {
                 response.disconnect();
             }
         }
-    }
-
-    HttpResponse getJwtKeysFromIdentityApi() throws IOException {
-        ExponentialBackOff backoff = new ExponentialBackOff.Builder()
-                .setInitialIntervalMillis(initialInterval)
-                .setMaxElapsedTimeMillis(maxElapsedTime)
-                .setMaxIntervalMillis(maxInterval)
-                .build();
-
-        HttpRequest httpRequest = new NetHttpTransport()
-                .createRequestFactory()
-                .buildGetRequest(new GenericUrl(identityApiUrl))
-                .setUnsuccessfulResponseHandler(new HttpBackOffUnsuccessfulResponseHandler(backoff));
-        return httpRequest.execute();
     }
 
     private Map<String, String> getJwtKeysFromResponse(HttpResponse response) throws IOException {
