@@ -13,6 +13,7 @@ import java.util.Map;
  * JWTKeyProviderImpl - Fetches JWT signing keys from a service according to the configs passed to it.
  */
 public class JWTKeyProviderImpl implements JWTKeyProvider {
+    private static final String JWT_KEYS_ROUTE = "/v1/jwt-keys";
     private RequestBuilder requestBuilder;
     private String identityApiUrl;
     private int initialInterval;
@@ -48,7 +49,8 @@ public class JWTKeyProviderImpl implements JWTKeyProvider {
     public Map<String, String> getJwtKeys() throws Exception {
         HttpResponse response = null;
         try {
-            HttpRequest request = requestBuilder.getRequest(identityApiUrl, initialInterval, maxElapsedTime, maxInterval);
+            String jwtKeysEndpoint = identityApiUrl + JWT_KEYS_ROUTE;
+            HttpRequest request = requestBuilder.getRequest(jwtKeysEndpoint, initialInterval, maxElapsedTime, maxInterval);
             response = request.execute();
 
             if (response == null) {

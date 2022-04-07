@@ -24,9 +24,11 @@ class JWTKeyProviderImplTest {
 
     private final static String PUBLIC_KEY_ID = "1234example=";
     private final static String PUBLIC_KEY = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwdowpUQS8YPrzFamOi7bEM74+yeqoAH0Tm+PLZdWjaIxL13XfxX63jO3iHAJe/Uh74d2vtTuHV7Vkl0wRjjJOuWrj5espG5VxU6xHJG/R2tVDElv05fFZhZn/YCwUJV2Zrz9Z0PIdPHB4eZODo64Qfab+ihgeLlny5l6+srVacWqsQ47i3DdJQOd6MgacvrKt+B0Ior1HKlHR0NneFPNu9zvCg11O1W0yl2+ou0UOPVqF8EfoavvgwbAUWwxeHXcN+TmgKx6Oa4X9ylk+Q0FUewYF020f5j7AW9EZrdu4rBTO2fliV02+DblOh/NTuHEzeCBHp3h4Mg5Bv3NYxY9sQIDAQAB";
+    private static final String EXPECTED_FETCH_JWT_ENDPOINT = "http://localhost:8080/v1/jwt-keys";
     Map<String, String> signingKeys = new HashMap<String, String>() {{
         put(PUBLIC_KEY_ID, PUBLIC_KEY);
     }};
+    private String identityAPIUrl = "http://localhost:8080";
 
     @Test
     void verify_ShouldThrowException_WhenIdentityApiReturnEmptySuccessResponse() throws Exception {
@@ -34,11 +36,12 @@ class JWTKeyProviderImplTest {
         given(mockResponse.getStatusCode()).willReturn(200);
         Mockito.when(mockResponse.parseAs(Mockito.any())).thenReturn(new HashMap<String, String>());
         RequestBuilder mockedRequestBuilder = getMockedRequestBuilder(mockResponse);
-        JWTKeyProviderImpl jwtKeyProvider = new JWTKeyProviderImpl("url", 5, 5, 5, mockedRequestBuilder);
+        JWTKeyProviderImpl jwtKeyProvider = new JWTKeyProviderImpl(identityAPIUrl, 5, 5, 5, mockedRequestBuilder);
 
         Exception exception = assertThrows(Exception.class, () -> jwtKeyProvider.getJwtKeys());
         Assert.assertThat(exception.getMessage(), CoreMatchers.containsString("JWT keys not found in the response"));
         verify(mockResponse, times(1)).disconnect();
+        verify(mockedRequestBuilder).getRequest(EXPECTED_FETCH_JWT_ENDPOINT, 5, 5, 5);
     }
 
 
@@ -48,12 +51,13 @@ class JWTKeyProviderImplTest {
         given(mockResponse.getStatusCode()).willReturn(200);
         Mockito.when(mockResponse.parseAs(any())).thenReturn(signingKeys);
         RequestBuilder mockedRequestBuilder = getMockedRequestBuilder(mockResponse);
-        JWTKeyProviderImpl jwtKeyProvider = new JWTKeyProviderImpl("url", 5, 5, 5, mockedRequestBuilder);
+        JWTKeyProviderImpl jwtKeyProvider = new JWTKeyProviderImpl(identityAPIUrl, 5, 5, 5, mockedRequestBuilder);
 
         Map<String, String> signingKeysFromApi = jwtKeyProvider.getJwtKeys();
 
         assertEquals(signingKeys, signingKeysFromApi);
         verify(mockResponse, times(1)).disconnect();
+        verify(mockedRequestBuilder).getRequest(EXPECTED_FETCH_JWT_ENDPOINT, 5, 5, 5);
     }
 
     @Test
@@ -62,7 +66,7 @@ class JWTKeyProviderImplTest {
         given(mockResponse.getStatusCode()).willReturn(500);
         Mockito.when(mockResponse.parseAs(any())).thenReturn(signingKeys);
         RequestBuilder mockedRequestBuilder = getMockedRequestBuilder(mockResponse);
-        JWTKeyProviderImpl jwtKeyProvider = new JWTKeyProviderImpl("url", 5, 5, 5, mockedRequestBuilder);
+        JWTKeyProviderImpl jwtKeyProvider = new JWTKeyProviderImpl(identityAPIUrl, 5, 5, 5, mockedRequestBuilder);
 
         Exception exception = assertThrows(Exception.class, () -> jwtKeyProvider.getJwtKeys());
 
