@@ -4,6 +4,8 @@ import com.google.api.client.http.GenericUrl;
 import com.google.api.client.http.HttpBackOffUnsuccessfulResponseHandler;
 import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.JsonObjectParser;
+import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.client.util.ExponentialBackOff;
 
 import java.io.IOException;
@@ -35,6 +37,7 @@ public class RequestBuilder {
         return new NetHttpTransport()
                 .createRequestFactory()
                 .buildGetRequest(new GenericUrl(url))
-                .setUnsuccessfulResponseHandler(new HttpBackOffUnsuccessfulResponseHandler(backoff));
+                .setUnsuccessfulResponseHandler(new HttpBackOffUnsuccessfulResponseHandler(backoff))
+                .setParser(new JsonObjectParser(new GsonFactory()));
     }
 }
