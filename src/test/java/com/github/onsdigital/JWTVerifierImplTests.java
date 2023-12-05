@@ -72,7 +72,7 @@ class JWTVerifierImplTests {
     void verify_ShouldThrowException_WhenKeyIDUnknown() {
         assertThatThrownBy(() -> verifier.verify(INVALID_KID_TOKEN))
                 .isInstanceOf(JWTDecodeException.class)
-                .hasMessageContaining(SigningKeyResolverImpl.PUBLIC_KEY_ERROR);
+                .hasMessageContaining(SigningKeyLocatorImpl.PUBLIC_KEY_ERROR);
     }
 
     @Test
@@ -112,14 +112,14 @@ class JWTVerifierImplTests {
     void verify_ShouldThrowException_WhenJWTNull() {
         assertThatThrownBy(() -> verifier.verify(null))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("JWT String argument cannot be null or empty.");
+                .hasMessageContaining("CharSequence cannot be null or empty.");
     }
 
     @Test
     void verify_ShouldThrowException_WhenJWTEmpty() {
         assertThatThrownBy(() -> verifier.verify(""))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("JWT String argument cannot be null or empty.");
+                .hasMessageContaining("CharSequence cannot be null or empty.");
     }
 
     @Test

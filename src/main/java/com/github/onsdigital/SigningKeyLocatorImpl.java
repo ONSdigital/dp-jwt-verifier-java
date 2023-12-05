@@ -1,9 +1,8 @@
 package com.github.onsdigital;
 
 import com.github.onsdigital.exceptions.JWTDecodeException;
-import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwsHeader;
-import io.jsonwebtoken.SigningKeyResolverAdapter;
+import io.jsonwebtoken.LocatorAdapter;
 
 import java.security.Key;
 import java.security.KeyFactory;
@@ -16,10 +15,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * A {@link SigningKeyResolverAdapter} implementation for determining the correct, configured signing key to use based
+ * A {@link LocatorAdapter} implementation for determining the correct, configured signing key to use based
  * on the 'kid' field in a JWT header.
  */
-public final class SigningKeyResolverImpl extends SigningKeyResolverAdapter {
+public final class SigningKeyLocatorImpl extends LocatorAdapter<Key> {
 
     static final String KEYS_REQUIRED_ERROR = "Public signing keys are required";
     static final String PUBLIC_KEY_CHECK_ERROR = "Public key check failed: ";
@@ -29,11 +28,11 @@ public final class SigningKeyResolverImpl extends SigningKeyResolverAdapter {
     private final Map<String, Key> signingKeys;
 
     /**
-     * Construct a new {@link SigningKeyResolverImpl}.
+     * Construct a new {@link SigningKeyLocatorImpl}.
      *
      * @param signingKeys the {@link Map} of key IDs to base 64 encoded, DER formatted public signing keys
      */
-    public SigningKeyResolverImpl(Map<String, String> signingKeys) {
+    public SigningKeyLocatorImpl(Map<String, String> signingKeys) {
         if (signingKeys == null || signingKeys.isEmpty()) {
             throw new IllegalArgumentException(KEYS_REQUIRED_ERROR);
         }
@@ -56,16 +55,15 @@ public final class SigningKeyResolverImpl extends SigningKeyResolverAdapter {
     }
 
     /**
-     * Returns the signing key that should be used to validate a digital signature for the Claims JWS with the specified
-     * header and claims.
+     * Returns the signing key that should be used to validate a digital signature for the JWS with the specified
+     * header.
      *
      * @param jwsHeader the header of the JWS to validate
-     * @param claims    the claims (body) of the JWS to validate
-     * @return the signing key that should be used to validate a digital signature for the Claims JWS with the specified
-     * header and claims.
+     * @return the signing key that should be used to validate a digital signature for the JWS with the specified
+     * header.
      */
     @Override
-    public Key resolveSigningKey(JwsHeader jwsHeader, Claims claims) {
+    public Key locate(JwsHeader jwsHeader) {
         Key key = signingKeys.get(jwsHeader.getKeyId());
         if (key == null) {
             throw new JWTDecodeException(PUBLIC_KEY_ERROR);

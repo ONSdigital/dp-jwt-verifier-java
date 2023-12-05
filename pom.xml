@@ -14,15 +14,15 @@
     <maven.compiler.target>8</maven.compiler.target>
     <maven.compiler.source>8</maven.compiler.source>
 
-    <io.jsonwebtoken.jjwt.version>0.11.2</io.jsonwebtoken.jjwt.version>
+    <io.jsonwebtoken.jjwt.version>0.12.3</io.jsonwebtoken.jjwt.version>
 
-    <junit.jupiter.version>5.8.2</junit.jupiter.version>
-    <assertj.core.version>3.22.0</assertj.core.version>
-    <mockito.core.version>4.3.1</mockito.core.version>
-    <findbugs.annotations.version>3.0.1</findbugs.annotations.version>
+    <junit.jupiter.version>5.10.1</junit.jupiter.version>
+    <assertj.core.version>3.24.2</assertj.core.version>
+    <mockito.core.version>4.11.0</mockito.core.version>
+    <spotbugs.annotations.version>4.8.2</spotbugs.annotations.version>
 
-    <maven.sonatype.ossindex.plugin.version>3.1.0</maven.sonatype.ossindex.plugin.version>
-    <maven.spotbugs.plugin.version>4.5.3.0</maven.spotbugs.plugin.version>
+    <maven.sonatype.ossindex.plugin.version>3.2.0</maven.sonatype.ossindex.plugin.version>
+    <maven.spotbugs.plugin.version>4.8.2.0</maven.spotbugs.plugin.version>
     <maven.spotbugs.security.plugin.version>1.11.0</maven.spotbugs.security.plugin.version>
     <maven.surefire.plugin.version>2.22.2</maven.surefire.plugin.version>
   </properties>
@@ -76,23 +76,29 @@
 
 
     <dependency>
-      <groupId>com.google.code.findbugs</groupId>
-      <artifactId>annotations</artifactId>
-      <version>${findbugs.annotations.version}</version>
+      <groupId>com.github.spotbugs</groupId>
+      <artifactId>spotbugs-annotations</artifactId>
+      <version>${spotbugs.annotations.version}</version>
     </dependency>
 
     <dependency>
       <groupId>com.google.http-client</groupId>
       <artifactId>google-http-client</artifactId>
-      <version>1.41.4</version>
+      <version>1.43.3</version>
     </dependency>
 
     <dependency>
       <groupId>com.google.http-client</groupId>
       <artifactId>google-http-client-gson</artifactId>
-      <version>1.41.4</version>
+      <version>1.43.3</version>
     </dependency>
 
+    <!-- Enforcing version 32.1.3-jre for guava to address vulnerability (CVE-2023-2976) in previous versions -->
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>32.1.3-jre</version>
+    </dependency>
   </dependencies>
 
   <build>

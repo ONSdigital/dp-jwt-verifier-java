@@ -7,11 +7,12 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.Locator;
 import io.jsonwebtoken.MalformedJwtException;
-import io.jsonwebtoken.SigningKeyResolver;
 import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.SignatureException;
 
+import java.security.Key;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -20,7 +21,7 @@ import java.util.Map;
  * JWTVerifier - decodes and verifies an access token according to
  * public keys passed to it.
  */
-public class JWTVerifierImpl implements JWTVerifier {
+public final class JWTVerifierImpl implements JWTVerifier {
 
     static final String SIGNATURE_VERIFICATION_ERROR = "JWT signature verification failed.";
     static final String ALGORITHM_ERROR = "JWT algorithm is not supported by the provided key.";
@@ -38,20 +39,20 @@ public class JWTVerifierImpl implements JWTVerifier {
      * @throws IllegalArgumentException if the public signing keys provided are invalid
      */
     public JWTVerifierImpl(Map<String, String> signingKeys) {
-        final SigningKeyResolver signingKeyResolver = new SigningKeyResolverImpl(signingKeys);
+        final Locator<Key> signingKeyLocator = new SigningKeyLocatorImpl(signingKeys);
 
-        this.jwtParser = Jwts.parserBuilder()
-                .setSigningKeyResolver(signingKeyResolver)
+        this.jwtParser = Jwts.parser()
+                .keyLocator(signingKeyLocator)
                 .build();
     }
 
 
     JWTVerifierImpl(JWTKeyProvider jwtKeyProvider) throws Exception {
         Map<String, String> signingKeys = jwtKeyProvider.getJwtKeys();
-        final SigningKeyResolver signingKeyResolver = new SigningKeyResolverImpl(signingKeys);
+        final Locator<Key> signingKeyLocator = new SigningKeyLocatorImpl(signingKeys);
 
-        this.jwtParser = Jwts.parserBuilder()
-                .setSigningKeyResolver(signingKeyResolver)
+        this.jwtParser = Jwts.parser()
+                .keyLocator(signingKeyLocator)
                 .build();
     }
 
@@ -83,7 +84,7 @@ public class JWTVerifierImpl implements JWTVerifier {
         String username;
         List<String> groups;
         try {
-            Claims claims = jwtParser.parseClaimsJws(token).getBody();
+            Claims claims = jwtParser.parseSignedClaims(token).getPayload();
 
             userId = claims.get("sub", String.class);
             username = claims.get("username", String.class);
