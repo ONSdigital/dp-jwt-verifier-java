@@ -17,7 +17,7 @@
     <io.jsonwebtoken.jjwt.version>0.12.3</io.jsonwebtoken.jjwt.version>
 
     <junit.jupiter.version>5.10.1</junit.jupiter.version>
-    <assertj.core.version>3.24.2</assertj.core.version>
+    <assertj.core.version>3.27.7</assertj.core.version>
     <mockito.core.version>4.11.0</mockito.core.version>
     <spotbugs.annotations.version>4.8.2</spotbugs.annotations.version>
 
